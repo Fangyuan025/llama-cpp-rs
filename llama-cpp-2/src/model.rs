@@ -825,6 +825,15 @@ impl LlamaModel {
         Ok(LlamaContext::new(self, context, params.embeddings()))
     }
 
+    /// The number of multi-token-prediction (`nextn`) layers the model holds.
+    ///
+    /// Zero for a checkpoint without an MTP head, and zero as well when the
+    /// model was loaded without [`crate::model::params::LlamaModelParams::with_load_mtp`].
+    #[must_use]
+    pub fn n_layer_nextn(&self) -> i32 {
+        unsafe { llama_cpp_sys_2::llama_model_n_layer_nextn(self.model.as_ptr()) }
+    }
+
     /// Create a new context bound to another context via llama.cpp's `ctx_other` field.
     ///
     /// This is required for MTP speculative decoding when the target model's

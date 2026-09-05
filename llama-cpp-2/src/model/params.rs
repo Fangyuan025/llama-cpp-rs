@@ -506,6 +506,30 @@ impl LlamaModelParams {
         devices
     }
 
+    /// Load the model's multi-token-prediction (MTP) layers.
+    ///
+    /// Checkpoints that ship an MTP head carry it as extra layers that plain
+    /// decoding never touches, so llama.cpp skips them unless asked. They are
+    /// what a draft context for [`crate::speculative::MtpSpeculative`] is built
+    /// from. Setting this on a model that has none is harmless.
+    /// ```
+    /// # use llama_cpp_2::model::params::LlamaModelParams;
+    /// let params = LlamaModelParams::default();
+    /// let params = params.with_load_mtp(true);
+    /// assert!(params.load_mtp());
+    /// ```
+    #[must_use]
+    pub fn with_load_mtp(mut self, load_mtp: bool) -> Self {
+        self.params.load_mtp = load_mtp;
+        self
+    }
+
+    /// whether the model's MTP layers will be loaded
+    #[must_use]
+    pub fn load_mtp(&self) -> bool {
+        self.params.load_mtp
+    }
+
     /// sets the number of gpu layers to offload to the GPU.
     /// ```
     /// # use llama_cpp_2::model::params::LlamaModelParams;
