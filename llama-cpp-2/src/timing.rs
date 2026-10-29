@@ -37,6 +37,9 @@ impl LlamaTimings {
                 n_p_eval,
                 n_eval,
                 n_reused,
+                // Added in llama.cpp b11960; a timing built by hand has none.
+                n_reallocs_same: 0,
+                n_reallocs_diff: 0,
             },
         }
     }
