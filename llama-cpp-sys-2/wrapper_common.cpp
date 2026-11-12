@@ -123,8 +123,25 @@ extern "C" llama_rs_status llama_rs_sampler_accept(struct llama_sampler * sample
     }
 }
 
+namespace {
+// llama.cpp took the model's path as a C string until it began fitting models
+// split over several files, and takes a list of paths since. One call that
+// compiles against either, so these bindings build with the llama.cpp they
+// pin and with a newer one put in its place.
+template <typename... Rest>
+auto fit_params(int, const char * path, Rest... rest) -> decltype(common_fit_params(path, rest...)) {
+    return common_fit_params(path, rest...);
+}
+template <typename... Rest>
+auto fit_params(long, const char * path, Rest... rest)
+    -> decltype(common_fit_params(std::vector<std::string>{std::string(path)}, rest...)) {
+    return common_fit_params(std::vector<std::string>{std::string(path)}, rest...);
+}
+} // namespace
+
 // Thin pass-through to llama.cpp's common_fit_params (a C++ symbol in libcommon).
 // Returns common_params_fit_status as an int: 0 = success, 1 = failure, 2 = error.
+// `extra`, when not null, is llama.cpp's own common_fit_extra_model.
 extern "C" int llama_rs_fit_params(
     const char * path_model,
     struct llama_model_params * mparams,
@@ -135,7 +152,8 @@ extern "C" int llama_rs_fit_params(
     uint32_t n_ctx_min,
     const void * extra,
     enum ggml_log_level log_level) {
-    return static_cast<int>(common_fit_params(
+    return static_cast<int>(fit_params(
+        0,
         path_model,
         mparams,
         cparams,
